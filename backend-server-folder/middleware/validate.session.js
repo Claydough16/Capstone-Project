@@ -10,7 +10,6 @@ const validateSession = async (req, res, next) => {
     req.user = user;
     return next();
   } catch (err) {
-    console.log("pinged");
     res.json({ message: err.message });
   }
 };

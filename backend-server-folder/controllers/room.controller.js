@@ -1,9 +1,9 @@
 const router = require("express").Router();
-const Room = require("../models/room.model");
+const Room = require("../models/rooms.model");
 const validateSession = require("../middleware/validate.session");
 
 //ENDPOINT: Create new room
-router.post("/", async (req, res) => {
+router.post("/", validateSession, async (req, res) => {
   try {
     const { name, description, addedUsers } = req.body;
     const room = new Room({ name, description, addedUsers });
@@ -34,5 +34,9 @@ router.get("/all", async (req, res) => {
     });
   }
 });
+
+//ENDPOINT: Delete room
+
+//ENDPOINT: Edit room
 
 module.exports = router;
