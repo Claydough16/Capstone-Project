@@ -13,6 +13,7 @@ const MONGO = process.env.MONGODataBase;
 const userController = require("./controllers/user.controller");
 const messageController = require("./controllers/message.controller");
 const roomController = require("./controllers/room.controller");
+const postController = require("./controllers/post.controller");
 
 //Database connect
 mongoose.connect(`${MONGO}/CapstoneProjectDB`);
@@ -30,6 +31,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/user", userController);
 app.use("/room", roomController);
 app.use("/message", messageController);
+app.use("/post", postController);
 
 app.listen(PORT, () => {
   console.log(`Server is on PORT: ${PORT}`);
