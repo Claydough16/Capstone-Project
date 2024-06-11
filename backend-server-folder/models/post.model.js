@@ -6,12 +6,12 @@ const PostSchema = new mongoose.Schema({
     required: true,
   },
   date: {
-    type: String,
-    required: true,
+    type: Date,
+    required: false,
   },
   location: {
     type: String,
-    required: true,
+    required: false,
   },
   description: {
     type: String,
@@ -19,7 +19,7 @@ const PostSchema = new mongoose.Schema({
   },
   tags: {
     type: Array,
-    required: true,
+    required: false,
   },
 });
 
