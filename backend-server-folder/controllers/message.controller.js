@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const validateSession = require("../middleware/validate.session");
 const Messages = require("../models/messages.model");
 
 //ENDPOINT: Create new message
@@ -7,7 +8,7 @@ router.post("/new", async (req, res) => {
     const { when, user, room, body } = req.body;
 
     const message = Messages({
-      when,
+      when: new Date(),
       user,
       room,
       body,
@@ -98,4 +99,6 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
+
+
 module.exports = router;
