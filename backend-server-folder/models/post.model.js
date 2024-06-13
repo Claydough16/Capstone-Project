@@ -21,6 +21,10 @@ const PostSchema = new mongoose.Schema({
     type: Array,
     required: false,
   },
+  /*  image: {
+    type: ImageData,
+    required: false,
+  }, */
 });
 
 module.exports = mongoose.model("Post", PostSchema);
