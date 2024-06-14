@@ -1,11 +1,11 @@
 const router = require("express").Router();
 const Posts = require("../models/post.model");
-const Likes = require("../models/likes.model");
+
 
 //ENDPOINT: Create New Post
 router.post("/new", async (req, res) => {
   try {
-    const { title, date, description, location, tags } = req.body;
+    const { title, date, description, location, tags, likes } = req.body;
 
     const post = Posts({
       title,
@@ -13,6 +13,7 @@ router.post("/new", async (req, res) => {
       description,
       location,
       tags,
+      likes
     });
 
     const newPost = await post.save();
@@ -100,26 +101,36 @@ router.delete("/:id", async (req, res) => {
 });
 
 // ENDPOINT: Like Post
-router.post('/:id/like', async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const { id: postId } = req.params;
+router.patch('/:id/like', async (req, res) => {
+    try {
+      
+      //const { userId } = req.body;
+      const { id } = req.params;
+  
+      const info = req.body;
+  
+      const patchPost = await Posts.findOneAndUpdate({ _id: id }, info, {
+        new: true,
+      });
 
-    // Check if the user has already liked the post
-    const existingLike = await Likes.findOne({ userId, postId });
-
-    if (existingLike) {
-      return res.status(400).json({ message: 'User has already liked the post' });
+      res.status(200).json({
+        message: patchPost,
+      });
+    } catch (err) {
+      res.status(500).json({
+        ERROR: err.message,
+      });
     }
 
-    // Create a new like document
-    const like = new Likes({ userId, postId });
-    await like.save();
+    // Check if the user has already liked the post
+    // const existingLike = await Likes.findOne({ userId, postId });
 
-    res.status(200).json({ message: 'Post liked successfully' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    /*  if (existingLike) {
+      return res.status(400).json({ message: 'User has already liked the post' });
+    } */
+  
+      
+   
 });
 
 // ENDPOINT: Unlike Post
@@ -143,13 +154,16 @@ router.delete('/:postId/like', async (req, res) => {
 
 // Endpoint to get the like status and count
 router.post('/status', async (req, res) => {
+
   try {
     const { userId, postId } = req.body;
+  
+    /* const likeCount = await Likes.countDocuments({ postId }); */
+    const postCurrent = await Posts.find({ _id: postId });
+    
+    // const liked = await Likes.exists({ userId, postId });
 
-    const likeCount = await Likes.countDocuments({ postId });
-    const liked = await Likes.exists({ userId, postId });
-
-    res.status(200).json({ liked: !!liked, likeCount });
+    res.status(200).json({ /* liked: !!liked, likeCount  */ postCurrent});
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
