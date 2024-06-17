@@ -74,15 +74,13 @@ router.post("/login", async (req, res) => {
 //ENDPOINT: Profile
 router.get("/profile", async (req, res) => {
     try {
-        const { token } = req.body;
-        const decoded = jwt.verify(token, SECRET)
+        const token = req.headers["authorization"];
+        const decoded = jwt.verify(token, SECRET);
     
-        const foundProfile = await profileModel.findOne({ userId: decoded.id})
+        const foundProfile = await profileModel.findOne({ userId: decoded.id});
     
 
-        res.status(200).json({
-            foundProfile
-        });
+        res.status(200).json(foundProfile);
         
     } catch (err) {
         res.status(400).json({
@@ -92,8 +90,29 @@ router.get("/profile", async (req, res) => {
 })
 
 //ENDPOINT: Profile changes
-router.post("/profile", (req, res) => {
+router.post("/profile", async (req, res) => {
+    try {
+        console.log("headers", req.headers);
+        console.log("body", req.body);
+        const token = req.headers["authorization"];
+        console.log(token)
+        const decoded = jwt.verify(token, SECRET);
 
+        // const { firstName, lastName, age, bio, country, travelPreferences, interests} = req.body;
+        const info = req.body;
+        console.log(info)
+
+        const profileUpdate = await profileModel.findOneAndUpdate({ userId: decoded.id}, info, {
+            new: true
+        });
+        console.log(profileUpdate)
+        res.status(200).json({});
+
+    } catch (err) {
+        res.status(400).json({
+            ERROR: err.message
+        });
+    }
 })
 
 //ENDPOINT: Change Password
