@@ -8,11 +8,12 @@ const profileModel = require("../models/profile.model");
 //ENDPOINT: Create new user
 router.post("/signup", async (req, res) => {
     try {
-        const { firstName, lastName, email, password } = req.body;
+        const { firstName, lastName, userName, email, password } = req.body;
 
         const user = new User({
             firstName,
             lastName,
+            userName,
             email,
             password: bcrypt.hashSync(password, 13),
         });
@@ -43,20 +44,23 @@ router.post("/signup", async (req, res) => {
     }
 });
 
-//ENDPOINT: Login
+// New Login Route:
 router.post("/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email: email });
+        const { identifier, password } = req.body;
 
-        if (!user) throw new Error(`Email or Password does not exist`);
+        const isEmail = identifier.includes('@');
+        const user = await User.findOne(isEmail ? { email: identifier } : { userName: identifier });
+
+        if (!user) throw new Error('Email/Username or Password does not exist');
+
         const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) throw new Error(`Email or Password does not exist`);
-        const token = jwt.sign({ id: user._id }, SECRET, { expiresIn: "1 day" });
+        if (!passwordMatch) throw new Error('Email/Username or Password does not exist');
+
+        const token = jwt.sign({ id: user._id }, SECRET, { expiresIn: '1 day' });
 
         res.status(200).json({
             message: "Successful!",
-            user,
             token,
         });
     } catch (err) {
