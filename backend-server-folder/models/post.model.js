@@ -13,8 +13,9 @@ const LikeSchema = new mongoose.Schema({
     }
 });
 
-// Post Model
+// Posts Model
 const PostSchema = new mongoose.Schema({
+
     title: {
         type: String,
         required: true,
@@ -24,6 +25,10 @@ const PostSchema = new mongoose.Schema({
         default: Date.now,
         required: false,
     },
+    eventDate: {
+        type: Date,
+        required: true,
+  },
     location: {
         type: String,
         required: false,
@@ -41,6 +46,6 @@ const PostSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
-});
+
 
 module.exports = mongoose.model("Post", PostSchema);

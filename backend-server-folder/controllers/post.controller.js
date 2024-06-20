@@ -4,11 +4,11 @@ const User = require("../models/users.model");
 const validateSession = require('../middleware/validate.session');
 
 
-
 //ENDPOINT: Create New Post
 router.post("/new", async (req, res) => {
   try {
-    const { title, date, description, location, tags, likes } = req.body;
+    const { title, date, description, location, tags, likes, eventDate } =
+      req.body;
 
     const post = Posts({
       title,
@@ -16,6 +16,7 @@ router.post("/new", async (req, res) => {
       description,
       location,
       tags,
+      eventDate,
     });
 
     const newPost = await post.save();
@@ -101,6 +102,7 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
+
 // ENDPOINT: Like Post
 router.patch("/:id/like", validateSession, async (req, res) => {
   try {
@@ -134,6 +136,7 @@ router.patch("/:id/like", validateSession, async (req, res) => {
     res.status(500).json({ ERROR: err.message });
   }
 });
+
 // ENDPOINT: Unlike Post
 router.patch("/:id/unlike", validateSession, async (req, res) => {
   try {
@@ -187,3 +190,5 @@ router.get("/status/:id", async (req, res) => {
 
 
 module.exports = router;
+
+
