@@ -9,7 +9,6 @@ const validateSession = async (req, res, next) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    console.log("Token:", token);
 
     const decoded = await jwt.verify(token, process.env.JWT);
 

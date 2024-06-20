@@ -4,11 +4,11 @@ const User = require("../models/users.model");
 const validateSession = require('../middleware/validate.session');
 
 
-
 //ENDPOINT: Create New Post
 router.post("/new", async (req, res) => {
   try {
-    const { title, date, description, location, tags, likes } = req.body;
+    const { title, date, description, location, tags, likes, eventDate } =
+      req.body;
 
     const post = Posts({
       title,
@@ -16,6 +16,7 @@ router.post("/new", async (req, res) => {
       description,
       location,
       tags,
+      eventDate,
     });
 
     const newPost = await post.save();
@@ -101,13 +102,13 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
+
 // ENDPOINT: Like Post
 router.patch("/:id/like", validateSession, async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.body;
 
-    console.log("Like request for post:", id, "by user:", userId);
     // Check if the post exists
     const post = await Posts.findById(id);
     if (!post) {
@@ -118,22 +119,16 @@ router.patch("/:id/like", validateSession, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    console.log("User fetched:", user);
-
     // Check if the user has already liked the post
     const existingLike = post.likes.find(like => like.user.toString() === userId);
     if (existingLike) {
       console.log("User has already liked the post");
       return res.status(400).json({ message: "User has already liked the post" });
     }
-
     // Add the like with user's username to the likes array
     post.likes.push({ user: userId, username: user.userName });
     post.likesCount += 1; 
     await post.save();
-
-    console.log("Post liked successfully");
 
     res.status(200).json({ message: "Post liked successfully", likesCount: post.likesCount });
   } catch (err) {
@@ -148,8 +143,6 @@ router.patch("/:id/unlike", validateSession, async (req, res) => {
     const { id } = req.params;
     const { userId } = req.body;
 
-    console.log("Unlike request for post:", id, "by user:", userId);
-
     // Check if the post exists
     const post = await Posts.findById(id);
     if (!post) {
@@ -161,12 +154,9 @@ router.patch("/:id/unlike", validateSession, async (req, res) => {
       console.log("User has not liked the post");
       return res.status(400).json({ message: "User has not liked the post" });
     }
-
     post.likes.splice(likeIndex, 1);// Remove the like from the likes array
     post.likesCount -= 1;
     await post.save();
-
-    console.log("Post unliked successfully");
 
     res.status(200).json({ message: "Post unliked successfully", likesCount: post.likesCount });
   } catch (err) {
@@ -199,6 +189,6 @@ router.get("/status/:id", async (req, res) => {
 });
 
 
-
-
 module.exports = router;
+
+
