@@ -1,6 +1,8 @@
 const router = require("express").Router();
 const Posts = require("../models/post.model");
-const Like = require("../models/like.model");
+const User = require("../models/users.model");
+const validateSession = require('../middleware/validate.session');
+
 
 
 //ENDPOINT: Create New Post
@@ -99,76 +101,103 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
-
 // ENDPOINT: Like Post
-router.patch("/:id/like", async (req, res) => {
+router.patch("/:id/like", validateSession, async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.body;
+
+    console.log("Like request for post:", id, "by user:", userId);
+    // Check if the post exists
+    const post = await Posts.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    // Fetch the user's username
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("User fetched:", user);
+
+    // Check if the user has already liked the post
+    const existingLike = post.likes.find(like => like.user.toString() === userId);
+    if (existingLike) {
+      console.log("User has already liked the post");
+      return res.status(400).json({ message: "User has already liked the post" });
+    }
+
+    // Add the like with user's username to the likes array
+    post.likes.push({ user: userId, username: user.userName });
+    post.likesCount += 1; 
+    await post.save();
+
+    console.log("Post liked successfully");
+
+    res.status(200).json({ message: "Post liked successfully", likesCount: post.likesCount });
+  } catch (err) {
+    console.error("Error in like endpoint:", err);
+    res.status(500).json({ ERROR: err.message });
+  }
+});
+
+// ENDPOINT: Unlike Post
+router.patch("/:id/unlike", validateSession, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    console.log("Unlike request for post:", id, "by user:", userId);
 
     // Check if the post exists
     const post = await Posts.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-
-    // Check if the user has already liked the post
-    const existingLike = await Like.findOne({ user: userId, post: id });
-    if (existingLike) {
-      return res.status(400).json({ message: "User has already liked the post" });
+    // Find the index of the like associated with the user
+    const likeIndex = post.likes.findIndex(like => like.user.toString() === userId);
+    if (likeIndex === -1) {
+      console.log("User has not liked the post");
+      return res.status(400).json({ message: "User has not liked the post" });
     }
 
-    // Create a new like associated with the user
-    const newLike = new Like({ user: userId, post: id}); // still not working
-    await newLike.save();
-
-    // Update likes count in the post document
-    post.likesCount += 1;
+    post.likes.splice(likeIndex, 1);// Remove the like from the likes array
+    post.likesCount -= 1;
     await post.save();
 
-    res.status(200).json({ message: "Post liked successfully" });
+    console.log("Post unliked successfully");
+
+    res.status(200).json({ message: "Post unliked successfully", likesCount: post.likesCount });
   } catch (err) {
+    console.error("Error in unlike endpoint:", err);
     res.status(500).json({ ERROR: err.message });
   }
 });
 
-// ENDPOINT: Unlike Post
-router.patch("/:id/unlike", async (req, res) => {
+router.get("/status/:id", async (req, res) => {
   try {
-    const { id } = req.params;
-    const { userId } = req.body;
+    const postId = req.params.id;
 
-    // Find and delete the like
-    await Like.findOneAndDelete({ user: userId, post: id });
+    const post = await Posts.findById(postId).populate({
+      path: 'likes',
+      populate: {
+        path: 'user',
+        select: 'username'
+      }
+    });
 
-    // Update likes count in the post document
-    const post = await Posts.findById(id);
-    if (post.likesCount > 0) {
-      post.likesCount -= 1;
-      await post.save();
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
 
-    res.status(200).json({ message: "Post unliked successfully" });
+    res.status(200).json(post);
   } catch (err) {
+    console.error("Error in /status endpoint:", err);
     res.status(500).json({ ERROR: err.message });
   }
 });
-// ENDPOINT: Get Like Status and Count
-router.post("/status", async (req, res) => {
-  try {
-    const { postId, userId } = req.body;
 
-    // Check if the user has liked the post
-    const liked = await Like.exists({ user: userId, post: postId });
-
-    // Get the total like count for the post
-    const likeCount = await Like.countDocuments({ post: postId });
-
-    res.status(200).json({ likeCount, liked });
-  } catch (err) {
-    res.status(500).json({ ERROR: err.message });
-  }
-});
 
 
 
