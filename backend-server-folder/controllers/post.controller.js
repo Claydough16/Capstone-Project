@@ -2,11 +2,11 @@ const router = require("express").Router();
 const Posts = require("../models/post.model");
 const Like = require("../models/like.model");
 
-
 //ENDPOINT: Create New Post
 router.post("/new", async (req, res) => {
   try {
-    const { title, date, description, location, tags, likes } = req.body;
+    const { title, date, description, location, tags, likes, eventDate } =
+      req.body;
 
     const post = Posts({
       title,
@@ -14,6 +14,7 @@ router.post("/new", async (req, res) => {
       description,
       location,
       tags,
+      eventDate,
     });
 
     const newPost = await post.save();
@@ -115,11 +116,13 @@ router.patch("/:id/like", async (req, res) => {
     // Check if the user has already liked the post
     const existingLike = await Like.findOne({ user: userId, post: id });
     if (existingLike) {
-      return res.status(400).json({ message: "User has already liked the post" });
+      return res
+        .status(400)
+        .json({ message: "User has already liked the post" });
     }
 
     // Create a new like associated with the user
-    const newLike = new Like({ user: userId, post: id}); // still not working
+    const newLike = new Like({ user: userId, post: id }); // still not working
     await newLike.save();
 
     // Update likes count in the post document
@@ -169,7 +172,5 @@ router.post("/status", async (req, res) => {
     res.status(500).json({ ERROR: err.message });
   }
 });
-
-
 
 module.exports = router;
