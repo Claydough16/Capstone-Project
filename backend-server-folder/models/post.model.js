@@ -28,7 +28,7 @@ const PostSchema = new mongoose.Schema({
     eventDate: {
         type: Date,
         required: true,
-  },
+    },
     location: {
         type: String,
         required: false,
@@ -46,6 +46,6 @@ const PostSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+})
 
-
-module.exports = mongoose.model("Post", PostSchema);
+    module.exports = mongoose.model("Post", PostSchema);
