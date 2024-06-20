@@ -33,9 +33,9 @@ router.post("/signup", async (req, res) => {
         const token = jwt.sign({ id: newUser._id }, SECRET, { expiresIn: "1 day" });
 
         res.status(200).json({
-            // user: newUser, //has password that user created, don't want that on the web
             message: "Success!",
             token,
+            userId: newUser._id // Included userId 
         });
     } catch (err) {
         res.status(500).json({
@@ -62,6 +62,7 @@ router.post("/login", async (req, res) => {
         res.status(200).json({
             message: "Successful!",
             token,
+            userId: user._id // Included userId
         });
     } catch (err) {
         res.status(500).json({
