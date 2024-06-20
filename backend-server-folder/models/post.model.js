@@ -10,8 +10,12 @@ const PostSchema = new mongoose.Schema({
     default: Date.now,
     required: false,
   },
+  eventDate: {
+    type: Date,
+    required: true,
+  },
   location: {
-    type: String,
+    type: Array,
     required: false,
   },
   description: {
@@ -24,7 +28,7 @@ const PostSchema = new mongoose.Schema({
   },
   likesCount: {
     type: Number,
-    default: 0,
+    default: 0, // Default value for the number of likes
   },
 });
 
