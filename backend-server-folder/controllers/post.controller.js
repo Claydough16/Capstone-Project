@@ -12,7 +12,7 @@ router.post("/new", async (req, res) => {
 
     const post = Posts({
       title,
-      date: new Date(),
+      date: new Date(), 
       description,
       location,
       tags,
