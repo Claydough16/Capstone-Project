@@ -3,7 +3,9 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const SECRET = process.env.JWT;
 const User = require("../models/users.model");
+const Posts = require('../models/post.model');
 const profileModel = require("../models/profile.model");
+const validateSession = require('../middleware/validate.session');
 
 //ENDPOINT: Create new user
 router.post("/signup", async (req, res) => {
@@ -19,7 +21,7 @@ router.post("/signup", async (req, res) => {
         });
 
         const newUser = await user.save();
-        const createProfile = new profileModel({ 
+        const createProfile = new profileModel({
             userId: newUser._id,
             firstName: firstName,
             lastName: lastName,
@@ -81,12 +83,12 @@ router.get("/profile", async (req, res) => {
     try {
         const token = req.headers["authorization"];
         const decoded = jwt.verify(token, SECRET);
-    
-        const foundProfile = await profileModel.findOne({ userId: decoded.id});
-    
+
+        const foundProfile = await profileModel.findOne({ userId: decoded.id });
+
 
         res.status(200).json(foundProfile);
-        
+
     } catch (err) {
         res.status(400).json({
             ERROR: err.message
@@ -107,7 +109,7 @@ router.post("/profile", async (req, res) => {
         const info = req.body;
         console.log(info)
 
-        const profileUpdate = await profileModel.findOneAndUpdate({ userId: decoded.id}, info, {
+        const profileUpdate = await profileModel.findOneAndUpdate({ userId: decoded.id }, info, {
             new: true
         });
         console.log(profileUpdate)
@@ -125,5 +127,19 @@ router.patch("/change-password", (req, res) => {
 
 })
 
+// ENDPOINT: Get posts liked by a user
+router.get("/:userId/likes", validateSession, async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Find posts that include the user in the likes array
+        const likedPosts = await Posts.find({ "likes.user": userId });
+
+        res.status(200).json(likedPosts);
+    } catch (err) {
+        console.error("Error fetching liked posts:", err);
+        res.status(500).json({ ERROR: err.message });
+    }
+});
 
 module.exports = router;
