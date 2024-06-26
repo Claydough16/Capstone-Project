@@ -1,22 +1,26 @@
 const router = require("express").Router();
 const Posts = require("../models/post.model");
 const User = require("../models/users.model");
-const validateSession = require('../middleware/validate.session');
-
+const uploadImage = require("../middleware/uploadImage");
+const validateSession = require("../middleware/validate.session");
 
 //ENDPOINT: Create New Post
 router.post("/new", async (req, res) => {
   try {
-    const { title, date, description, location, tags, likes, eventDate } =
-      req.body;
+    const { title, description, location, tags, image, eventDate } = req.body;
+
+    //Utilizes middleware to upload base64 image to cloudinary, returns secure URL
+    const imgUrl = await uploadImage(image);
+    console.log(`Link to Uploaded Image: ${imgUrl}`);
 
     const post = Posts({
       title,
-      date: new Date(), 
+      date: new Date(),
       description,
       location,
       tags,
       eventDate,
+      imgUrl,
     });
 
     const newPost = await post.save();
@@ -120,17 +124,24 @@ router.patch("/:id/like", validateSession, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     // Check if the user has already liked the post
-    const existingLike = post.likes.find(like => like.user.toString() === userId);
+    const existingLike = post.likes.find(
+      (like) => like.user.toString() === userId
+    );
     if (existingLike) {
       console.log("User has already liked the post");
-      return res.status(400).json({ message: "User has already liked the post" });
+      return res
+        .status(400)
+        .json({ message: "User has already liked the post" });
     }
     // Add the like with user's username to the likes array
     post.likes.push({ user: userId, username: user.userName });
-    post.likesCount += 1; 
+    post.likesCount += 1;
     await post.save();
 
-    res.status(200).json({ message: "Post liked successfully", likesCount: post.likesCount });
+    res.status(200).json({
+      message: "Post liked successfully",
+      likesCount: post.likesCount,
+    });
   } catch (err) {
     console.error("Error in like endpoint:", err);
     res.status(500).json({ ERROR: err.message });
@@ -149,16 +160,21 @@ router.patch("/:id/unlike", validateSession, async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
     // Find the index of the like associated with the user
-    const likeIndex = post.likes.findIndex(like => like.user.toString() === userId);
+    const likeIndex = post.likes.findIndex(
+      (like) => like.user.toString() === userId
+    );
     if (likeIndex === -1) {
       console.log("User has not liked the post");
       return res.status(400).json({ message: "User has not liked the post" });
     }
-    post.likes.splice(likeIndex, 1);// Remove the like from the likes array
+    post.likes.splice(likeIndex, 1); // Remove the like from the likes array
     post.likesCount -= 1;
     await post.save();
 
-    res.status(200).json({ message: "Post unliked successfully", likesCount: post.likesCount });
+    res.status(200).json({
+      message: "Post unliked successfully",
+      likesCount: post.likesCount,
+    });
   } catch (err) {
     console.error("Error in unlike endpoint:", err);
     res.status(500).json({ ERROR: err.message });
@@ -170,11 +186,11 @@ router.get("/status/:id", async (req, res) => {
     const postId = req.params.id;
 
     const post = await Posts.findById(postId).populate({
-      path: 'likes',
+      path: "likes",
       populate: {
-        path: 'user',
-        select: 'username'
-      }
+        path: "user",
+        select: "username",
+      },
     });
 
     if (!post) {
@@ -188,7 +204,4 @@ router.get("/status/:id", async (req, res) => {
   }
 });
 
-
 module.exports = router;
-
-

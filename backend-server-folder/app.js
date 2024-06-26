@@ -23,17 +23,18 @@ db.once("open", () => {
 });
 
 //Middleware
-app.use(express.json());
+
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+/* app.use(bodyParser.urlencoded({ extended: true })); */
+/* app.use(express.json()); */
 
 //Routes
 app.use("/user", userController);
 app.use("/room", roomController);
 app.use("/message", messageController);
 app.use("/post", postController);
-
-
 
 app.listen(PORT, () => {
   console.log(`Server is on PORT: ${PORT}`);
