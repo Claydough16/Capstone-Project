@@ -13,6 +13,15 @@ router.post("/signup", async (req, res) => {
     try {
         const { firstName, lastName, userName, email, password } = req.body;
 
+        const existingUser = await User.findOne({ $or: [{ userName }, { email }] });
+        if (existingUser) {
+            return res.status(400).json({
+                message: "User already exists",
+                userNameExists: existingUser.userName === userName,
+                emailExists: existingUser.email === email
+            });
+        }
+
         const user = new User({
             firstName,
             lastName,
@@ -149,8 +158,8 @@ router.get("/password-reset", async (req, res) => {
     try {
         const email = req.query.email;
         // Find user by email
-        const foundUser = await User.findOne({ email: email});
-        
+        const foundUser = await User.findOne({ email: email });
+
         if (!foundUser) {
             res.status(404).json("could not find user");
             return;
@@ -158,37 +167,21 @@ router.get("/password-reset", async (req, res) => {
 
         const sentEmail = await sendPasswordResetMail(email);
 
-        res.status(200).json({message: `Password reset email sent`, previewURL: sentEmail});
+        res.status(200).json({ message: `Password reset email sent`, previewURL: sentEmail });
     } catch (err) {
         console.error("Error", err);
-        res.status(500).json({error: err.message});
+        res.status(500).json({ error: err.message });
     }
 })
-
-/*
-    GET /password-reset?email=email@email.com
-        send password reset email to user email (gives link to UI password-reset form with token query parameter)
-        newPassword on UI sends to
-                              /
-                             /
-                            /
-                           /
-                          /
-                         /
-                        /
-                       7
-    POST /password-reset
-        contains email, token, newPassword in request body
-*/
 
 // ENDPOINT: Reset password
 router.post("/password-reset", async (req, res) => {
     console.log("PASSWORD RESET TIME");
     try {
-        const {email, token, newPassword} = req.body;
+        const { email, token, newPassword } = req.body;
 
         // Find user by email, check token is correct
-        const foundUser = await User.findOne({email: email});
+        const foundUser = await User.findOne({ email: email });
         console.log("DID WE FIND THE USER")
 
         if (!foundUser) {
