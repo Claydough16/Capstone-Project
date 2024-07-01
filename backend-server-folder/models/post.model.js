@@ -40,7 +40,7 @@ const PostSchema = new mongoose.Schema({
     type: Array,
     required: false,
   },
-  likes: [LikeSchema], // Array of likes
+  likes: [LikeSchema], 
   likesCount: {
     type: Number,
     default: 0,
@@ -49,6 +49,10 @@ const PostSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  username: { 
+    type: String,
+    required: true,
+  }
 });
 
 module.exports = mongoose.model("Post", PostSchema);

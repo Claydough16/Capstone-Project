@@ -4,16 +4,22 @@ const User = require("../models/users.model");
 const uploadImage = require("../middleware/uploadImage");
 const validateSession = require("../middleware/validate.session");
 
-//ENDPOINT: Create New Post
-router.post("/new", async (req, res) => {
+// ENDPOINT: Create New Post
+router.post("/new", validateSession, async (req, res) => {
   try {
     const { title, description, location, tags, image, eventDate } = req.body;
+    const userId = req.userId; 
 
-    //Utilizes middleware to upload base64 image to cloudinary, returns secure URL
+    // Utilizes middleware to upload base64 image to cloudinary, returns secure URL
     const imgUrl = await uploadImage(image);
     console.log(`Link to Uploaded Image: ${imgUrl}`);
 
-    const post = Posts({
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const post = new Posts({
       title,
       date: new Date(),
       description,
@@ -21,6 +27,7 @@ router.post("/new", async (req, res) => {
       tags,
       eventDate,
       imgUrl,
+      username: user.userName, 
     });
 
     const newPost = await post.save();
@@ -34,21 +41,25 @@ router.post("/new", async (req, res) => {
   }
 });
 
-//ENDPOINT: Get All Posts
 router.get("/all", async (req, res) => {
   try {
-    const getAllPosts = await Posts.find();
+    const getAllPosts = await Posts.find().populate('likes.user', 'username');
     if (getAllPosts.length > 0) {
       res.status(200).json({
         result: getAllPosts,
       });
+    } else {
+      res.status(404).json({ message: "No posts found" });
     }
   } catch (err) {
+    console.error("Error fetching all posts:", err);
     res.status(500).json({
       ERROR: err.message,
     });
   }
 });
+
+
 
 //ENDPOINT: Get Posts by Tag
 router.get("/:tag", async (req, res) => {
