@@ -14,6 +14,7 @@ const userController = require("./controllers/user.controller");
 const messageController = require("./controllers/message.controller");
 const roomController = require("./controllers/room.controller");
 const postController = require("./controllers/post.controller");
+const notificationController = require("./controllers/notifications.controller");
 
 //Database connect
 mongoose.connect(`${MONGO}/CapstoneProjectDB`);
@@ -35,6 +36,7 @@ app.use("/user", userController);
 app.use("/room", roomController);
 app.use("/message", messageController);
 app.use("/post", postController);
+app.use("/notification", notificationController);
 
 app.listen(PORT, () => {
   console.log(`Server is on PORT: ${PORT}`);
