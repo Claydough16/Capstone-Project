@@ -2,6 +2,7 @@ const router = require("express").Router();
 const Posts = require("../models/post.model");
 const User = require("../models/users.model");
 const uploadImage = require("../middleware/uploadImage");
+const Notification = require("../models/notifications.model");
 const validateSession = require("../middleware/validate.session");
 
 // ENDPOINT: Create New Post
@@ -129,25 +130,44 @@ router.patch("/:id/like", validateSession, async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
+
     // Fetch the user's username
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
     // Check if the user has already liked the post
     const existingLike = post.likes.find(
       (like) => like.user.toString() === userId
     );
-    if (existingLike) {
-      console.log("User has already liked the post");
-      return res
-        .status(400)
-        .json({ message: "User has already liked the post" });
+
+    if (!existingLike) {
+      // Add the like with user's username to the likes array
+      post.likes.push({ user: userId, username: user.userName });
+      post.likesCount += 1;
+      await post.save();
+
+      // Check if a notification already exists for this like action
+      const existingNotification = await Notification.findOne({
+        type: "like",
+        actionBy: userId,
+        postId: id,
+      });
+
+      if (!existingNotification) {
+        // Create a new notification
+        const notificationMessage = `${user.userName} liked your post!\n ${post.title}`;
+
+        const newNotification = new Notification({
+          type: "like",
+          actionBy: userId,
+          postId: id,
+          message: notificationMessage,
+        });
+        await newNotification.save();
+      }
     }
-    // Add the like with user's username to the likes array
-    post.likes.push({ user: userId, username: user.userName });
-    post.likesCount += 1;
-    await post.save();
 
     res.status(200).json({
       message: "Post liked successfully",
