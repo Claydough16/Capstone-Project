@@ -6,7 +6,7 @@ const User = require("../models/users.model");
 const Posts = require('../models/post.model');
 const profileModel = require("../models/profile.model");
 const validateSession = require('../middleware/validate.session');
-const sendPasswordResetMail = require('../email')
+const sendPasswordResetMail = require('../email');
 
 //ENDPOINT: Create new user
 router.post("/signup", async (req, res) => {
@@ -29,6 +29,7 @@ router.post("/signup", async (req, res) => {
             email,
             password: bcrypt.hashSync(password, 13),
             passwordReset: "",
+            friends: []
         });
 
         const newUser = await user.save();
@@ -62,6 +63,10 @@ router.post("/login", async (req, res) => {
     try {
         const { identifier, password } = req.body;
 
+        if (!identifier || !password) {
+            throw new Error('Identifier and Password are required');
+        }
+
         const isEmail = identifier.includes('@');
         const user = await User.findOne(isEmail ? { email: identifier } : { userName: identifier });
 
@@ -83,11 +88,6 @@ router.post("/login", async (req, res) => {
         });
     }
 });
-//ENDPOINT: Edit user
-
-//ENDPOINT: Get user by tag <--- WIP
-
-//ENDPOINT: Delete user
 
 //ENDPOINT: Profile
 router.get("/profile", async (req, res) => {
@@ -97,9 +97,7 @@ router.get("/profile", async (req, res) => {
 
         const foundProfile = await profileModel.findOne({ userId: decoded.id });
 
-
         res.status(200).json(foundProfile);
-
     } catch (err) {
         res.status(400).json({
             ERROR: err.message
@@ -116,7 +114,6 @@ router.post("/profile", async (req, res) => {
         console.log(token)
         const decoded = jwt.verify(token, SECRET);
 
-        // const { firstName, lastName, age, bio, country, travelPreferences, interests} = req.body;
         const info = req.body;
         console.log(info)
 
@@ -125,7 +122,6 @@ router.post("/profile", async (req, res) => {
         });
         console.log(profileUpdate)
         res.status(200).json({});
-
     } catch (err) {
         res.status(400).json({
             ERROR: err.message
@@ -135,7 +131,7 @@ router.post("/profile", async (req, res) => {
 
 //ENDPOINT: Change Password
 router.patch("/change-password", (req, res) => {
-
+    // Add your logic here
 })
 
 // ENDPOINT: Get posts liked by a user
@@ -149,7 +145,7 @@ router.get("/:userId/likes", validateSession, async (req, res) => {
         res.status(200).json(likedPosts);
     } catch (err) {
         console.error("Error fetching liked posts:", err);
-        res.status(500).json({ ERROR: err.message });
+        res.status500().json({ ERROR: err.message });
     }
 });
 
@@ -208,6 +204,53 @@ router.post("/password-reset", async (req, res) => {
     } catch (err) {
         console.log("Error resetting password" + err);
         res.status(500).json("Error resetting password");
+    }
+});
+
+// ENDPOINT: Get friends
+router.get('/:userId/friends', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const user = await User.findById(userId).populate('friends');
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+        res.status(200).json(user.friends);
+    } catch (err) {
+        res.status(500).send({error: err.message});
+    }
+});
+
+// ENDPOINT: Add friend
+router.post('/:userId/friends', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        const friend = await User.findById(req.body.friendId);
+        if (!user || !friend) {
+            return res.status(404).send('User or friend not found');
+        }
+        if (!user.friends.includes(friend._id)) {
+            user.friends.push(friend._id);
+            await user.save();
+        }
+        res.send(user);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+// ENDPOINT: Delete friend
+router.delete('/:userId/friends/:friendId', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+        user.friends.pull(req.params.friendId);
+        await user.save();
+        res.send(user);
+    } catch (error) {
+        res.status(500).send(error);
     }
 });
 
