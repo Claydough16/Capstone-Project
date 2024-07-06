@@ -125,30 +125,25 @@ router.patch("/:id/like", validateSession, async (req, res) => {
     const { id } = req.params;
     const { userId } = req.body;
 
-    // Check if the post exists
     const post = await Posts.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Fetch the user's username
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the user has already liked the post
     const existingLike = post.likes.find(
       (like) => like.user.toString() === userId
     );
 
     if (!existingLike) {
-      // Add the like with user's username to the likes array
       post.likes.push({ user: userId, username: user.userName });
       post.likesCount += 1;
       await post.save();
 
-      // Check if a notification already exists for this like action
       const existingNotification = await Notification.findOne({
         type: "like",
         actionBy: userId,
@@ -156,14 +151,14 @@ router.patch("/:id/like", validateSession, async (req, res) => {
       });
 
       if (!existingNotification) {
-        // Create a new notification
-        const notificationMessage = `${user.userName} liked your post!\n ${post.title}`;
+        const notificationMessage = `${user.userName} is Interested in your event!\n ${post.title}`;
 
         const newNotification = new Notification({
           type: "like",
           actionBy: userId,
           postId: id,
           message: notificationMessage,
+          userId: post.username, 
         });
         await newNotification.save();
       }
@@ -185,12 +180,12 @@ router.patch("/:id/unlike", validateSession, async (req, res) => {
     const { id } = req.params;
     const { userId } = req.body;
 
-    // Check if the post exists
+    
     const post = await Posts.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-    // Find the index of the like associated with the user
+    
     const likeIndex = post.likes.findIndex(
       (like) => like.user.toString() === userId
     );
@@ -198,7 +193,7 @@ router.patch("/:id/unlike", validateSession, async (req, res) => {
       console.log("User has not liked the post");
       return res.status(400).json({ message: "User has not liked the post" });
     }
-    post.likes.splice(likeIndex, 1); // Remove the like from the likes array
+    post.likes.splice(likeIndex, 1); 
     post.likesCount -= 1;
     await post.save();
 
