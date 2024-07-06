@@ -27,12 +27,10 @@ const UserSchema = new mongoose.Schema({
   passwordReset: {
     type: String
   },
-  friends: [
-    {
+  friends: [{
       type: Schema.Types.ObjectId,
       ref: 'User'
-    },
-  ],
+    }],
 });
 
 module.exports = mongoose.model("User", UserSchema);
