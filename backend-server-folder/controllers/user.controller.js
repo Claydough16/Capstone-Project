@@ -222,22 +222,30 @@ router.get('/:userId/friends', async (req, res) => {
 });
 
 // ENDPOINT: Add friend
-router.post('/:userId/friends', async (req, res) => {
+router.post('/friends/add', async (req, res) => {
     try {
-        const user = await User.findById(req.params.userId);
-        const friend = await User.findById(req.body.friendId);
+        const { userId, friendId } = req.body;
+
+        const user = await User.findById(userId);
+        const friend = await User.findById(friendId);
+
         if (!user || !friend) {
-            return res.status(404).send('User or friend not found');
+            return res.status(404).json({ message: 'User or friend not found' });
         }
-        if (!user.friends.includes(friend._id)) {
-            user.friends.push(friend._id);
-            await user.save();
+
+        if (user.friends.includes(friendId)) {
+            return res.status(400).json({ message: 'Friend already added' });
         }
-        res.send(user);
-    } catch (error) {
-        res.status(500).send(error);
+
+        user.friends.push(friendId);
+        await user.save();
+
+        res.status(200).json({ message: 'Friend added successfully', user });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
+
 
 // ENDPOINT: Delete friend
 router.delete('/:userId/friends/:friendId', async (req, res) => {
