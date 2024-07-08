@@ -34,6 +34,25 @@ router.post("/new", async (req, res) => {
   }
 });
 
+//ENDPOINT: Return Filtered Posts
+router.post("/filter", async (req, res) => {
+  try {
+    const { filterCoords } = await req.body;
+    console.log(req.body);
+    const getAllPosts = await Posts.find();
+
+    if (getAllPosts.length > 0) {
+      res.status(200).json({
+        result: getAllPosts,
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      ERROR: err.message,
+    });
+  }
+});
+
 //ENDPOINT: Get All Posts
 router.get("/all", async (req, res) => {
   try {
