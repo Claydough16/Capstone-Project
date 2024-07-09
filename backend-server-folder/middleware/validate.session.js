@@ -11,6 +11,8 @@ const validateSession = async (req, res, next) => {
 
     const token = authHeader.replace("Bearer ", "");
 
+    // console.log("Token received:", token); 
+
     const decoded = jwt.verify(token, process.env.JWT);
 
     const user = await User.findById(decoded.id);
@@ -29,4 +31,5 @@ const validateSession = async (req, res, next) => {
 };
 
 module.exports = validateSession;
+
 
