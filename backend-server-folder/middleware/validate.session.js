@@ -1,4 +1,3 @@
-
 const jwt = require("jsonwebtoken");
 const User = require("../models/users.model");
 
@@ -6,7 +5,9 @@ const validateSession = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      return res.status(401).json({ message: "Authorization header not found" });
+      return res
+        .status(401)
+        .json({ message: "Authorization header not found" });
     }
 
     const token = authHeader.replace("Bearer ", "");
@@ -29,4 +30,3 @@ const validateSession = async (req, res, next) => {
 };
 
 module.exports = validateSession;
-
