@@ -18,7 +18,7 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({
         message: "User already exists",
         userNameExists: existingUser.userName === userName,
-        emailExists: existingUser.email === email,
+        emailExists: existingUser.email === email
       });
     }
 
@@ -29,7 +29,7 @@ router.post("/signup", async (req, res) => {
       email,
       password: bcrypt.hashSync(password, 13),
       passwordReset: "",
-      friends: [],
+      friends: []
     });
 
     const newUser = await user.save();
@@ -38,10 +38,11 @@ router.post("/signup", async (req, res) => {
       firstName: firstName,
       lastName: lastName,
       age: "",
+      userName: userName,
       bio: "",
       country: "",
       travelPreferences: "",
-      interests: "",
+      interests: ""
     });
     const newProfile = await createProfile.save();
     const token = jwt.sign({ id: newUser._id }, SECRET, { expiresIn: "1 day" });
@@ -49,7 +50,7 @@ router.post("/signup", async (req, res) => {
     res.status(200).json({
       message: "Success!",
       token,
-      userId: newUser._id, // Included userId
+      userId: newUser._id // Included userId
     });
   } catch (err) {
     res.status(500).json({
