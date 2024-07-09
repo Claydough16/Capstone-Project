@@ -38,6 +38,7 @@ router.post("/signup", async (req, res) => {
             firstName: firstName,
             lastName: lastName,
             age: "",
+            userName: userName,
             bio: "",
             country: "",
             travelPreferences: "",

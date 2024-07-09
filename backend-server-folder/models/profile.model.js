@@ -17,6 +17,10 @@ const ProfileSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
+    userName: {
+        type: String,
+        required: true,
+    },
     bio: {
         type: String,
         required: false,
