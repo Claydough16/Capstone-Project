@@ -9,7 +9,7 @@ const validateSession = require("../middleware/validate.session");
 router.post("/new", validateSession, async (req, res) => {
   try {
     const { title, description, location, tags, image, eventDate } = req.body;
-    const userId = req.userId; 
+    const userId = req.userId;
 
     // Utilizes middleware to upload base64 image to cloudinary, returns secure URL
     const imgUrl = await uploadImage(image);
@@ -28,7 +28,7 @@ router.post("/new", validateSession, async (req, res) => {
       tags,
       eventDate,
       imgUrl,
-      username: user.userName, 
+      username: user.userName,
     });
 
     const newPost = await post.save();
@@ -42,25 +42,40 @@ router.post("/new", validateSession, async (req, res) => {
   }
 });
 
-router.get("/all", async (req, res) => {
+//ENDPOINT: Return Filtered Posts
+router.post("/filter", async (req, res) => {
   try {
-    const getAllPosts = await Posts.find().populate('likes.user', 'username');
+    const { filterCoords } = await req.body;
+    console.log(req.body);
+    const getAllPosts = await Posts.find();
+
     if (getAllPosts.length > 0) {
       res.status(200).json({
         result: getAllPosts,
       });
-    } else {
-      res.status(404).json({ message: "No posts found" });
     }
   } catch (err) {
-    console.error("Error fetching all posts:", err);
     res.status(500).json({
       ERROR: err.message,
     });
   }
 });
 
-
+//ENDPOINT: Get All Posts
+router.get("/all", async (req, res) => {
+  try {
+    const getAllPosts = await Posts.find();
+    if (getAllPosts.length > 0) {
+      res.status(200).json({
+        result: getAllPosts,
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      ERROR: err.message,
+    });
+  }
+});
 
 //ENDPOINT: Get Posts by Tag
 router.get("/:tag", async (req, res) => {
@@ -138,31 +153,16 @@ router.patch("/:id/like", validateSession, async (req, res) => {
     const existingLike = post.likes.find(
       (like) => like.user.toString() === userId
     );
-
-    if (!existingLike) {
-      post.likes.push({ user: userId, username: user.userName });
-      post.likesCount += 1;
-      await post.save();
-
-      const existingNotification = await Notification.findOne({
-        type: "like",
-        actionBy: userId,
-        postId: id,
-      });
-
-      if (!existingNotification) {
-        const notificationMessage = `${user.userName} is Interested in your event!\n ${post.title}`;
-
-        const newNotification = new Notification({
-          type: "like",
-          actionBy: userId,
-          postId: id,
-          message: notificationMessage,
-          userId: post.username, 
-        });
-        await newNotification.save();
-      }
+    if (existingLike) {
+      console.log("User has already liked the post");
+      return res
+        .status(400)
+        .json({ message: "User has already liked the post" });
     }
+    // Add the like with user's username to the likes array
+    post.likes.push({ user: userId, username: user.userName });
+    post.likesCount += 1;
+    await post.save();
 
     res.status(200).json({
       message: "Post liked successfully",
@@ -180,12 +180,12 @@ router.patch("/:id/unlike", validateSession, async (req, res) => {
     const { id } = req.params;
     const { userId } = req.body;
 
-    
+    // Check if the post exists
     const post = await Posts.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-    
+    // Find the index of the like associated with the user
     const likeIndex = post.likes.findIndex(
       (like) => like.user.toString() === userId
     );
@@ -193,7 +193,7 @@ router.patch("/:id/unlike", validateSession, async (req, res) => {
       console.log("User has not liked the post");
       return res.status(400).json({ message: "User has not liked the post" });
     }
-    post.likes.splice(likeIndex, 1); 
+    post.likes.splice(likeIndex, 1); // Remove the like from the likes array
     post.likesCount -= 1;
     await post.save();
 
