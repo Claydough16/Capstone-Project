@@ -2,18 +2,25 @@ const router = require("express").Router();
 const Posts = require("../models/post.model");
 const User = require("../models/users.model");
 const uploadImage = require("../middleware/uploadImage");
+const Notification = require("../models/notifications.model");
 const validateSession = require("../middleware/validate.session");
 
-//ENDPOINT: Create New Post
-router.post("/new", async (req, res) => {
+// ENDPOINT: Create New Post
+router.post("/new", validateSession, async (req, res) => {
   try {
     const { title, description, location, tags, image, eventDate } = req.body;
+    const userId = req.userId;
 
-    //Utilizes middleware to upload base64 image to cloudinary, returns secure URL
+    // Utilizes middleware to upload base64 image to cloudinary, returns secure URL
     const imgUrl = await uploadImage(image);
     console.log(`Link to Uploaded Image: ${imgUrl}`);
 
-    const post = Posts({
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const post = new Posts({
       title,
       date: new Date(),
       description,
@@ -21,6 +28,7 @@ router.post("/new", async (req, res) => {
       tags,
       eventDate,
       imgUrl,
+      username: user.userName,
     });
 
     const newPost = await post.save();
@@ -132,17 +140,16 @@ router.patch("/:id/like", validateSession, async (req, res) => {
     const { id } = req.params;
     const { userId } = req.body;
 
-    // Check if the post exists
     const post = await Posts.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-    // Fetch the user's username
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    // Check if the user has already liked the post
+
     const existingLike = post.likes.find(
       (like) => like.user.toString() === userId
     );
