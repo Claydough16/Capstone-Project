@@ -8,11 +8,11 @@ const MessageSchema = new mongoose.Schema({
   },
   user: {
     type: String,
-    required: true,
+    required: false,
   },
   room: {
     type: String,
-    required: true,
+    required: false,
   },
   body: {
     type: String,
