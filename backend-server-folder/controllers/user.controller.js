@@ -8,7 +8,7 @@ const profileModel = require("../models/profile.model");
 const validateSession = require("../middleware/validate.session");
 const sendPasswordResetMail = require("../email");
 
-//ENDPOINT: Create new user
+// ENDPOINT: Create new user
 router.post("/signup", async (req, res) => {
   try {
     const { firstName, lastName, userName, email, password } = req.body;
@@ -33,18 +33,20 @@ router.post("/signup", async (req, res) => {
     });
 
     const newUser = await user.save();
+
     const createProfile = new profileModel({
       userId: newUser._id,
+      userName: userName,
       firstName: firstName,
       lastName: lastName,
       age: "",
-      userName: userName,
       bio: "",
       country: "",
       travelPreferences: "",
       interests: "",
     });
     const newProfile = await createProfile.save();
+
     const token = jwt.sign({ id: newUser._id }, SECRET, { expiresIn: "1 day" });
 
     res.status(200).json({
@@ -145,7 +147,7 @@ router.patch("/change-password", (req, res) => {
 });
 
 // ENDPOINT: Get posts liked by a user
-router.get("/:userId/likes", validateSession, async (req, res) => {
+router.get("/:userId/Interested", validateSession, async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -239,27 +241,20 @@ router.get("/:userId/friends", async (req, res) => {
 });
 
 // ENDPOINT: Add friend
-router.post("/friends/add", async (req, res) => {
+router.post("/:userId/friends", async (req, res) => {
   try {
-    const { userId, friendId } = req.body;
-
-    const user = await User.findById(userId);
-    const friend = await User.findById(friendId);
-
+    const user = await User.findById(req.params.userId);
+    const friend = await User.findById(req.body.friendId);
     if (!user || !friend) {
-      return res.status(404).json({ message: "User or friend not found" });
+      return res.status(404).send("User or friend not found");
     }
-
-    if (user.friends.includes(friendId)) {
-      return res.status(400).json({ message: "Friend already added" });
+    if (!user.friends.includes(friend._id)) {
+      user.friends.push(friend._id);
+      await user.save();
     }
-
-    user.friends.push(friendId);
-    await user.save();
-
-    res.status(200).json({ message: "Friend added successfully", user });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.send(user);
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 

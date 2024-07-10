@@ -11,8 +11,9 @@ const MessageSchema = new mongoose.Schema({
     required: false,
   },
   room: {
-    type: String,
+    type: Array,
     required: false,
+    uniqe: false,
   },
   body: {
     type: String,
