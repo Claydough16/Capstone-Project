@@ -153,16 +153,31 @@ router.patch("/:id/like", validateSession, async (req, res) => {
     const existingLike = post.likes.find(
       (like) => like.user.toString() === userId
     );
-    if (existingLike) {
-      console.log("User has already liked the post");
-      return res
-        .status(400)
-        .json({ message: "User has already liked the post" });
+
+    if (!existingLike) {
+      post.likes.push({ user: userId, username: user.userName });
+      post.likesCount += 1;
+      await post.save();
+
+      const existingNotification = await Notification.findOne({
+        type: "like",
+        actionBy: userId,
+        postId: id,
+      });
+
+      if (!existingNotification) {
+        const notificationMessage = `${user.userName} is Interested in your event!\n ${post.title}`;
+
+        const newNotification = new Notification({
+          type: "like",
+          actionBy: userId,
+          postId: id,
+          message: notificationMessage,
+          userId: post.username, 
+        });
+        await newNotification.save();
+      }
     }
-    // Add the like with user's username to the likes array
-    post.likes.push({ user: userId, username: user.userName });
-    post.likesCount += 1;
-    await post.save();
 
     res.status(200).json({
       message: "Post liked successfully",
