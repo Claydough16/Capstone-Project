@@ -41,12 +41,12 @@ router.get("/all", async (req, res) => {
   }
 });
 
-//ENDPOINT: Read All Messages by Room
-router.get("/:roomId", async (req, res) => {
+//ENDPOINT: Read All Messages by User
+router.get("/:userName", async (req, res) => {
   try {
-    const { roomId } = req.params;
-    console.log(roomId);
-    const getRoomMessages = await Messages.find({ room: roomId });
+    const { userName } = req.params;
+    console.log(userName);
+    const getRoomMessages = await Messages.find({ room: userName });
     res.status(200).json({
       result: getRoomMessages,
     });
@@ -99,7 +99,5 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
-
-
 
 module.exports = router;
