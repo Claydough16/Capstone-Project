@@ -241,25 +241,36 @@ router.get("/:userId/friends", async (req, res) => {
 });
 
 // ENDPOINT: Add friend
-router.post("/:userId/friends", async (req, res) => {
+router.post("/friends", async (req, res) => {
     try {
-        const user = await User.findById(req.params.userId);
-        const friend = await User.findById(req.body.friendId);
+        const { userId, friendUserName } = req.body;
+
+        console.log(friendUserName)
+        console.log(userId)
+
+        const user = await User.findById(userId);
+        const friend = await profileModel.findOne({userName: friendUserName})
+
         if (!user || !friend) {
             return res.status(404).send("User or friend not found");
         }
-        if (!user.friends.includes(friend._id)) {
-            user.friends.push(friend._id);
+
+        const friendId = friend.userId
+
+        if (!user.friends.includes(friendId)) {
+            user.friends.push(friendId);
             await user.save();
         }
-        res.send(user);
+
+        res.status(200).json(user);
     } catch (error) {
-        res.status(500).send(error);
+        console.error("Error adding friend:", error);
+        res.status(500).send("Error adding friend");
     }
 });
 
 // ENDPOINT: Delete friend
-router.delete("/:userId/friends/:friendId", async (req, res) => {
+router.delete("/friends", async (req, res) => {
     try {
         const user = await User.findById(req.params.userId);
         if (!user) {

@@ -44,11 +44,11 @@ router.get("/all", async (req, res) => {
 //ENDPOINT: Read All Messages by User
 router.get("/:userName", async (req, res) => {
   try {
-    const { userName } = req.params;
+    const { userName, userId } = req.params;
     console.log(userName);
     const getRoomMessages = await Messages.find({ room: userName });
     res.status(200).json({
-      result: getRoomMessages,
+      result: getRoomMessages, userId
     });
   } catch (err) {
     res.status(500).json({
