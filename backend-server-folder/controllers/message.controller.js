@@ -41,14 +41,22 @@ router.get("/all", async (req, res) => {
   }
 });
 
-//ENDPOINT: Read All Messages by User
-router.get("/:userName", async (req, res) => {
+//ENDPOINT: Read All Messages by User (filtered based on room)
+router.get("/:userName/:userName1", async (req, res) => {
   try {
-    const { userName } = req.params;
-    console.log(userName);
+    const { userName, userName1 } = req.params;
+    /*  console.log(`${userName}`, `${userName1}`); */
     const getRoomMessages = await Messages.find({ room: userName });
+
+    let filteredArray = getRoomMessages.filter(checkRoom);
+    function checkRoom(message) {
+      if (message.room.includes(userName1)) {
+        return message;
+      }
+    }
+
     res.status(200).json({
-      result: getRoomMessages,
+      result: filteredArray,
     });
   } catch (err) {
     res.status(500).json({
