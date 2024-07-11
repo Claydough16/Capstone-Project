@@ -20,11 +20,13 @@ router.post("/", validateSession, async (req, res) => {
   }
 });
 
-//ENDPOINT: Get all rooms. Does not check user auth to view rooms.
-// >>We may want to implement this server side. Right now it would be filtered client side
-router.get("/all", async (req, res) => {
+//ENDPOINT: Get all rooms. Does checks user is on added list.
+router.get("/:userName", async (req, res) => {
   try {
-    const getAllRooms = await Room.find();
+    const { userName } = req.params;
+
+    const getAllRooms = await Room.find({ addedUsers: userName });
+
     res.status(200).json({
       result: getAllRooms,
     });
