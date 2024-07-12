@@ -97,7 +97,7 @@ router.post("/login", async (req, res) => {
     }
 });
 
-//ENDPOINT: Profile
+// ENDPOINT: Profile
 router.get("/profile", async (req, res) => {
     try {
         const token = req.headers["authorization"];
@@ -113,17 +113,13 @@ router.get("/profile", async (req, res) => {
     }
 });
 
-//ENDPOINT: Profile changes
+// ENDPOINT: Profile changes
 router.post("/profile", async (req, res) => {
     try {
-        console.log("headers", req.headers);
-        console.log("body", req.body);
         const token = req.headers["authorization"];
-        console.log(token);
         const decoded = jwt.verify(token, SECRET);
 
         const info = req.body;
-        console.log(info);
 
         const profileUpdate = await profileModel.findOneAndUpdate(
             { userId: decoded.id },
@@ -132,8 +128,7 @@ router.post("/profile", async (req, res) => {
                 new: true,
             }
         );
-        console.log(profileUpdate);
-        res.status(200).json({});
+        res.status(200).json(profileUpdate);
     } catch (err) {
         res.status(400).json({
             ERROR: err.message,
@@ -141,7 +136,7 @@ router.post("/profile", async (req, res) => {
     }
 });
 
-//ENDPOINT: Change Password
+// ENDPOINT: Change Password
 router.patch("/change-password", (req, res) => {
     // Add your logic here
 });
@@ -157,7 +152,7 @@ router.get("/:userId/Interested", validateSession, async (req, res) => {
         res.status(200).json(likedPosts);
     } catch (err) {
         console.error("Error fetching liked posts:", err);
-        res.status500().json({ ERROR: err.message });
+        res.status(500).json({ ERROR: err.message });
     }
 });
 
@@ -169,15 +164,13 @@ router.get("/password-reset", async (req, res) => {
         const foundUser = await User.findOne({ email: email });
 
         if (!foundUser) {
-            res.status(404).json("could not find user");
+            res.status(404).json("Could not find user");
             return;
         }
 
         const sentEmail = await sendPasswordResetMail(email);
 
-        res
-            .status(200)
-            .json({ message: `Password reset email sent`, previewURL: sentEmail });
+        res.status(200).json({ message: "Password reset email sent", previewURL: sentEmail });
     } catch (err) {
         console.error("Error", err);
         res.status(500).json({ error: err.message });
@@ -186,42 +179,30 @@ router.get("/password-reset", async (req, res) => {
 
 // ENDPOINT: Reset password
 router.post("/password-reset", async (req, res) => {
-    console.log("PASSWORD RESET TIME");
     try {
         const { email, token, newPassword } = req.body;
 
         // Find user by email, check token is correct
         const foundUser = await User.findOne({ email: email });
-        console.log("DID WE FIND THE USER");
 
         if (!foundUser) {
             res.status(401).json("User not found or bad user");
             return;
         }
-        console.log("YES???");
-        console.log(
-            "Found token in database:",
-            foundUser.passwordReset,
-            "Token provided:",
-            token
-        );
 
         if (foundUser.passwordReset !== token) {
             res.status(401).json("Invalid token");
             return;
         }
-        console.log("YES!!!");
 
         const hashedPassword = bcrypt.hashSync(newPassword, 13);
         foundUser.password = hashedPassword;
         foundUser.passwordReset = null;
         await foundUser.save();
 
-        console.log("changedPasswordUser", foundUser);
         res.status(200).json("Password has changed");
-        return;
     } catch (err) {
-        console.log("Error resetting password" + err);
+        console.error("Error resetting password:", err);
         res.status(500).json("Error resetting password");
     }
 });
@@ -239,28 +220,20 @@ router.get("/:userId/friends", async (req, res) => {
         res.status(500).send({ error: err.message });
     }
 });
-// add friend
-router.post("/friends", async (req, res) => {
-  try {
-      const { userId, friendUserName } = req.body;
-
 
 // ENDPOINT: Add friend
 router.post("/friends", async (req, res) => {
     try {
         const { userId, friendUserName } = req.body;
 
-        console.log(friendUserName)
-        console.log(userId)
-
         const user = await User.findById(userId);
-        const friend = await profileModel.findOne({ userName: friendUserName })
+        const friend = await profileModel.findOne({ userName: friendUserName });
 
         if (!user || !friend) {
             return res.status(404).send("User or friend not found");
         }
 
-        const friendId = friend.userId
+        const friendId = friend.userId;
 
         if (!user.friends.includes(friendId)) {
             user.friends.push(friendId);
@@ -272,7 +245,6 @@ router.post("/friends", async (req, res) => {
         console.error("Error adding friend:", error);
         res.status(500).send("Error adding friend");
     }
-
 });
 
 // ENDPOINT: Delete friend
@@ -287,14 +259,11 @@ router.delete("/friends", async (req, res) => {
 
         user.friends.pull(friendId);
         await user.save();
-        res.send(user);
+        res.status(200).send(user);
 
     } catch (error) {
         res.status(500).send(error);
     }
 });
-
-
-
 
 module.exports = router;
