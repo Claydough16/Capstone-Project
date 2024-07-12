@@ -52,12 +52,12 @@ router.post("/filter", async (req, res) => {
     getFilteredPosts.forEach((post) => {
       let locationArray = [post.location[2], post.location[3]];
       //Javascript version of pythagorean's theorem
-      let a = Math.abs(xCoord - locationArray[0]);
+      let a = Math.abs(xCoord - locationArray[1]);
       //   console.log(`a = ${a}`);
-      let b = Math.abs(yCoord - locationArray[1]);
+      let b = Math.abs(yCoord - locationArray[0]);
       //   console.log(`b = ${b}`);
       //   console.log(`c = ${Math.sqrt(a * a + b * a)}`);
-      if (Math.sqrt(a * a + b * a) < 50) {
+      if (Math.sqrt(a * a + b * a) < 20) {
         evenMoreFiltered.push(post);
       }
     });
