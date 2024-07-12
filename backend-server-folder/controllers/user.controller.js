@@ -244,43 +244,57 @@ router.post("/friends", async (req, res) => {
   try {
       const { userId, friendUserName } = req.body;
 
-      console.log(friendUserName)
-      console.log(userId)
 
-      const user = await User.findById(userId);
-      const friend = await profileModel.findOne({userName: friendUserName})
+// ENDPOINT: Add friend
+router.post("/friends", async (req, res) => {
+    try {
+        const { userId, friendUserName } = req.body;
 
-      if (!user || !friend) {
-          return res.status(404).send("User or friend not found");
-      }
+        console.log(friendUserName)
+        console.log(userId)
 
-      const friendId = friend.userId
+        const user = await User.findById(userId);
+        const friend = await profileModel.findOne({ userName: friendUserName })
 
-      if (!user.friends.includes(friendId)) {
-          user.friends.push(friendId);
-          await user.save();
-      }
+        if (!user || !friend) {
+            return res.status(404).send("User or friend not found");
+        }
 
-      res.status(200).json(user);
-  } catch (error) {
-      console.error("Error adding friend:", error);
-      res.status(500).send("Error adding friend");
-  }
+        const friendId = friend.userId
+
+        if (!user.friends.includes(friendId)) {
+            user.friends.push(friendId);
+            await user.save();
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Error adding friend:", error);
+        res.status(500).send("Error adding friend");
+    }
+
 });
 
 // ENDPOINT: Delete friend
-router.delete("/:userId/friends/:friendId", async (req, res) => {
+router.delete("/friends", async (req, res) => {
+    const { userId, friendId } = req.body;
+
     try {
-        const user = await User.findById(req.params.userId);
+        const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).send("User not found");
+            return res.status(404).json("User not found");
         }
-        user.friends.pull(req.params.friendId);
+
+        user.friends.pull(friendId);
         await user.save();
         res.send(user);
+
     } catch (error) {
         res.status(500).send(error);
     }
 });
+
+
+
 
 module.exports = router;
