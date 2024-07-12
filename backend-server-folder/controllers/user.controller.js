@@ -239,6 +239,11 @@ router.get("/:userId/friends", async (req, res) => {
         res.status(500).send({ error: err.message });
     }
 });
+// add friend
+router.post("/friends", async (req, res) => {
+  try {
+      const { userId, friendUserName } = req.body;
+
 
 // ENDPOINT: Add friend
 router.post("/friends", async (req, res) => {
@@ -267,6 +272,7 @@ router.post("/friends", async (req, res) => {
         console.error("Error adding friend:", error);
         res.status(500).send("Error adding friend");
     }
+
 });
 
 // ENDPOINT: Delete friend
