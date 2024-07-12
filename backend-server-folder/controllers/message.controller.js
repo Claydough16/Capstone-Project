@@ -65,6 +65,22 @@ router.get("/:userName/:userName1", async (req, res) => {
   }
 });
 
+//ENDPOINT: Read All Messages Involving User
+router.get("/:userName", async (req, res) => {
+  try {
+    const { userName } = req.params;
+    const getRoomMessages = await Messages.find({ room: userName });
+
+    res.status(200).json({
+      result: getRoomMessages,
+    });
+  } catch (err) {
+    res.status(500).json({
+      ERROR: err.message,
+    });
+  }
+});
+
 //ENDPOINT: Update Message
 router.patch("/:id", async (req, res) => {
   try {
