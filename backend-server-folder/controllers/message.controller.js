@@ -56,7 +56,7 @@ router.get("/:userName/:userName1", async (req, res) => {
     }
 
     res.status(200).json({
-      result: filteredArray,
+      result: getRoomMessages,
     });
   } catch (err) {
     res.status(500).json({
