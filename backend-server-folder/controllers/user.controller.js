@@ -249,7 +249,7 @@ router.post("/friends", async (req, res) => {
         console.log(userId)
 
         const user = await User.findById(userId);
-        const friend = await profileModel.findOne({userName: friendUserName})
+        const friend = await profileModel.findOne({ userName: friendUserName })
 
         if (!user || !friend) {
             return res.status(404).send("User or friend not found");
@@ -271,17 +271,24 @@ router.post("/friends", async (req, res) => {
 
 // ENDPOINT: Delete friend
 router.delete("/friends", async (req, res) => {
+    const { userId, friendId } = req.body;
+
     try {
-        const user = await User.findById(req.params.userId);
+        const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).send("User not found");
+            return res.status(404).json("User not found");
         }
-        user.friends.pull(req.params.friendId);
+
+        user.friends.pull(friendId);
         await user.save();
         res.send(user);
+
     } catch (error) {
         res.status(500).send(error);
     }
 });
+
+
+
 
 module.exports = router;
