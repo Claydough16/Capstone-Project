@@ -45,13 +45,47 @@ router.post("/new", validateSession, async (req, res) => {
 //ENDPOINT: Return Filtered Posts
 router.post("/filter", async (req, res) => {
   try {
-    const { filterCoords } = await req.body;
-    console.log(req.body);
-    const getAllPosts = await Posts.find();
+    const { xCoord, yCoord, tags } = await req.body;
+    const getFilteredPosts = await Posts.find();
+    const evenMoreFiltered = [];
+    const mostFiltered = [];
+    let result = null;
 
-    if (getAllPosts.length > 0) {
+    //Filter posts by location
+    getFilteredPosts.forEach((post) => {
+      let locationArray = [post.location[2], post.location[3]];
+      //Javascript version of pythagorean's theorem
+      let a = Math.abs(xCoord - locationArray[1]);
+      //   console.log(`a = ${a}`);
+      let b = Math.abs(yCoord - locationArray[0]);
+      //   console.log(`b = ${b}`);
+      //   console.log(`c = ${Math.sqrt(a * a + b * a)}`);
+      //Range here indicates the cutoff distance for returning a post
+      let range = 20;
+      if (Math.sqrt(a * a + b * a) < range) {
+        evenMoreFiltered.push(post);
+      }
+    });
+
+    //Filter posts by tags
+    if (tags.length > 0) {
+      getFilteredPosts.forEach((post) => {
+        tags.forEach((tag) => {
+          if (post.tags.includes(tag)) {
+            mostFiltered.push(post);
+          }
+        });
+        result = mostFiltered;
+      });
+    }
+
+    if (tags.length < 1) {
+      result = evenMoreFiltered;
+    }
+
+    if (getFilteredPosts.length > 0) {
       res.status(200).json({
-        result: getAllPosts,
+        result: result,
       });
     }
   } catch (err) {
@@ -173,7 +207,7 @@ router.patch("/:id/like", validateSession, async (req, res) => {
           actionBy: userId,
           postId: id,
           message: notificationMessage,
-          userId: post.username, 
+          userId: post.username,
         });
         await newNotification.save();
       }
