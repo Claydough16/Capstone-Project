@@ -159,7 +159,7 @@ router.delete("/:id", async (req, res) => {
         message: "removed",
       });
     } else {
-      res.send("Message does not exist");
+      res.send("Post does not exist");
     }
   } catch (err) {
     res.status(500).json({
