@@ -17,6 +17,9 @@ const sendPasswordResetMail = async (email) => {
             auth: {
                 user: account.user,
                 pass: account.pass
+            },
+            tls: {
+                rejectUnauthorized: false,
             }
         });
 
@@ -35,7 +38,7 @@ const sendPasswordResetMail = async (email) => {
 
         // Message object
         let message = {
-            from: 'Sender Name <sender@example.com>',
+            from: 'Capstone Project <capstonep963@gmail.com>',
             to: `Recipient <${ email }>`,
             subject: 'Use the link below to reset your password',
             text: 'Hello to myself!',
