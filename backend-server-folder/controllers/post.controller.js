@@ -55,20 +55,50 @@ router.post("/filter", async (req, res) => {
     getFilteredPosts.forEach((post) => {
       let locationArray = [post.location[2], post.location[3]];
       //Javascript version of pythagorean's theorem
-      let a = Math.abs(xCoord - locationArray[1]);
+      let a = Math.abs(Math.abs(yCoord) - Math.abs(locationArray[0]));
+      console.log(`X(c): ${yCoord}`);
+      console.log(`X(p): ${locationArray[0]}`);
+      console.log(`A: ${a}`);
       //   console.log(`a = ${a}`);
-      let b = Math.abs(yCoord - locationArray[0]);
+      let b = Math.abs(Math.abs(xCoord) - Math.abs(locationArray[1]));
+      console.log(`Y(c): ${xCoord}`);
+      console.log(`Y(p): ${locationArray[1]}`);
+      console.log(`B: ${b}`);
       //   console.log(`b = ${b}`);
       //   console.log(`c = ${Math.sqrt(a * a + b * a)}`);
       //Range here indicates the cutoff distance for returning a post
-      let range = 20;
-      if (Math.sqrt(a * a + b * a) < range) {
+      let aSqrd = a * a;
+      let bSqrd = b * b;
+      let cSqrd = aSqrd + bSqrd;
+      let range = 10;
+      let distance = Math.sqrt(cSqrd);
+      console.log(`A SQUARED${aSqrd}`);
+      console.log(`B SQUARED${bSqrd}`);
+      console.log(`POST TITLE: ${post.title}`);
+      console.log(`POST LOCATION: ${post.location}`);
+      console.log(`CENTER: ${xCoord}, ${yCoord}`);
+      console.log(`DISTANCE: ${distance}`);
+      console.log(` ACCEPTABLE DISTANCE: ${range}`);
+      console.log(`------------------------------`);
+
+      if (distance < range) {
         evenMoreFiltered.push(post);
       }
     });
 
     //Filter posts by tags
-    if (tags.length > 0) {
+    if (tags.length > 0 && xCoord) {
+      evenMoreFiltered.forEach((post) => {
+        tags.forEach((tag) => {
+          if (post.tags.includes(tag)) {
+            mostFiltered.push(post);
+          }
+        });
+        result = mostFiltered;
+      });
+    }
+
+    if (tags.length > 0 && !xCoord) {
       getFilteredPosts.forEach((post) => {
         tags.forEach((tag) => {
           if (post.tags.includes(tag)) {
@@ -159,7 +189,7 @@ router.delete("/:id", async (req, res) => {
         message: "removed",
       });
     } else {
-      res.send("Message does not exist");
+      res.send("Post does not exist");
     }
   } catch (err) {
     res.status(500).json({
